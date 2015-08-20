@@ -69,6 +69,23 @@ func (d *Deluge) CoreGetTorrentState() ([]string, error) {
 	return InterfaceToStringSlice(response["result"].([]interface{})), nil
 }
 
+// CoreGetTorrentStatus wraps the core.get_torrent_status RPC call.
+// torrentId is the info hash of the torrent to retrieve status for.
+// Returns the map returned by status for the torrent. TODO struct?
+func (d *Deluge) CoreGetTorrentStatus(torrentId string) (map[string]interface{}, error) {
+	keys := []string{}
+
+	response, err := d.sendJsonRequest("core.get_torrent_status", []interface{}{torrentId, keys})
+	if err != nil {
+		return nil, err
+	}
+
+	return response["result"].(map[string]interface{}), nil
+}
+
+// CoreGetTorrentsStatus wraps the core.get_torrents_status RPC call.
+// It returns the status of all torrents in the session.
+// Returns the map returned by status for the torrent. TODO struct?
 func (d *Deluge) CoreGetTorrentsStatus() (map[string]interface{}, error) {
 	filter := map[string]interface{}{}
 	keys := []string{}
@@ -78,9 +95,7 @@ func (d *Deluge) CoreGetTorrentsStatus() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	result := response["result"].(map[string]interface{})
-
-	return result, nil
+	return response["result"].(map[string]interface{}), nil
 }
 
 // CoreAddTorrentFile wraps the core.add_torrent_file RPC call. fileName is the
@@ -118,6 +133,18 @@ func (d *Deluge) CoreAddTorrentUrl(torrentUrl string, options map[string]interfa
 	}
 
 	return response["result"].(string), nil
+}
+
+// CoreRemoveTorrent wraps the core.remove_torrent RPC call. torrentId is
+// the info hash for the torrent to remove and removeData is a boolean flag
+// for if the data attached to the torrent should be removed.
+func (d *Deluge) CoreRemoveTorrent(torrentId string, removeData bool) (bool, error) {
+	response, err := d.sendJsonRequest("core.remove_torrent", []interface{}{torrentId, removeData})
+	if err != nil {
+		return false, err
+	}
+
+	return response["result"].(bool), nil
 }
 
 func (d *Deluge) authLogin() error {
