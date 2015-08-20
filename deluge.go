@@ -58,6 +58,31 @@ func New(url, password string) (*Deluge, error) {
 	return d, err
 }
 
+// CoreGetTorrentState wraps the core.get_torrent_state RPC call.
+// Returns a list of torrent ids in the session.
+func (d *Deluge) CoreGetTorrentState() ([]string, error) {
+	response, err := d.sendJsonRequest("core.get_session_state", []interface{}{})
+	if err != nil {
+		return nil, err
+	}
+
+	return InterfaceToStringSlice(response["result"].([]interface{})), nil
+}
+
+func (d *Deluge) CoreGetTorrentsStatus() (map[string]interface{}, error) {
+	filter := map[string]interface{}{}
+	keys := []string{}
+
+	response, err := d.sendJsonRequest("core.get_torrents_status", []interface{}{filter, keys})
+	if err != nil {
+		return nil, err
+	}
+
+	result := response["result"].(map[string]interface{})
+
+	return result, nil
+}
+
 // CoreAddTorrentFile wraps the core.add_torrent_file RPC call. fileName is the
 // name of the original torrent file. fileDump is the base64 encoded contents of
 // the file and options is a map with options to be set (consult de Deluge
